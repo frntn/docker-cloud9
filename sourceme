@@ -1,0 +1,17 @@
+# source this file
+#  then start your local web-based IDE Cloud9 
+#   using just this command : 'c9 [ /optional/path/to/workspace ]'
+
+c9() {
+
+  workspace="$(/bin/readlink -f "${1:-"$(pwd)"}")"
+  name="$(/bin/ls -id "$workspace" | awk '{print $1}' | sha1sum | grep -oE '^.{7}')"
+
+  cid=$(docker run -d -v "$workspace:/workspace" -P frntn/cloud9)
+  port="$(docker inspect --format '{{ range $key, $value := .NetworkSettings.Ports }}{{ if eq $key "80/tcp" }}{{ (index $value 0).HostPort }}{{ end }}{{ end }}' $cid)"
+
+  sleep 3
+
+  firefox "http://$(hostname):$port" >/dev/null 2>/dev/null &
+
+}
